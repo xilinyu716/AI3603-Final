@@ -440,7 +440,7 @@ def my_analyze_shot_for_reward(shot: pt.System, last_state: dict, player_targets
     foul_no_rail = False
     
     
-    '''
+    
     for e in shot.events:
         et = str(e.event_type).lower()
         ids = list(e.ids) if hasattr(e, 'ids') else []
@@ -452,29 +452,29 @@ def my_analyze_shot_for_reward(shot: pt.System, last_state: dict, player_targets
 
     if len(new_pocketed) == 0 and first_contact_ball_id is not None and (not cue_hit_cushion) and (not target_hit_cushion):
         foul_no_rail = True
-    '''
+    
        
     # 计算奖励分数
     score = 0
     
     if cue_pocketed and eight_pocketed:
-        score -= 150
+        score -= 1000
     elif cue_pocketed:
-        score -= 100
+        score -= 40
     elif eight_pocketed:
         is_targeting_eight_ball_legally = (len(player_targets) == 1 and player_targets[0] == "8")
-        score += 100 if is_targeting_eight_ball_legally else -150
+        score += 100 if is_targeting_eight_ball_legally else -1000
             
     if foul_first_hit:
-        score -= 30
+        score -= 40
     if foul_no_rail:
-        score -= 30
+        score -= 40
         
     score += len(own_pocketed) * 50
-    score -= len(enemy_pocketed) * 20
+    score -= len(enemy_pocketed) * 50
     
     if score == 0 and not cue_pocketed and not eight_pocketed and not foul_first_hit and not foul_no_rail:
-        score = 10
+        score = 40
         
     return score
 
@@ -628,27 +628,43 @@ class NewAgent(Agent):
                     'phi_geo': self._get_angle(aim_vec)
                 })
 
-        # --- 修改点2：防守策略 (Safety Play) ---
-        # 如果没有几何上可行的方案，执行防守，而不是随机击球
+        # --- 修改点2：分级防守策略 (Tiered Safety) ---
         if not candidates:
-            print("[NewAgent] 无直击路径，执行防守策略(Safety)。")
+            best_safety_action = None
+            max_dist_to_8 = -1
             
-            # 获取黑8位置
-            pos_8 = balls['8'].state.rvw[0]
-            vec_c_8 = pos_8 - cue_pos
-            angle_to_8 = self._get_angle(vec_c_8)
-            
-            # 策略：朝黑8的反方向打(偏160度)，最小力度
-            safety_phi = (angle_to_8 + 160) % 360
-            safety_v0 = 0.5 # 最小速度
-            
-            return {
-                'V0': safety_v0,
-                'phi': safety_phi,
-                'theta': 0,
-                'a': 0,
-                'b': 0
-            }
+            # 尝试一：寻找离黑8最远且路径不被黑8阻挡的己方球
+            for tid in normal_balls:
+                target_pos = balls[tid].state.rvw[0]
+                dist_to_8 = np.linalg.norm(target_pos - balls['8'].state.rvw[0])
+                
+                # 检查白球到该目标球的路径是否会误碰黑8（5倍半径避让）
+                obstacles = {k: v for k, v in balls.items() if k != 'cue' and k != tid}
+                if not self._check_collision(cue_pos, target_pos, obstacles, strict_8_avoid=True):
+                    if dist_to_8 > max_dist_to_8:
+                        max_dist_to_8 = dist_to_8
+                        aim_vec = target_pos - cue_pos
+                        safety_dist = np.linalg.norm(aim_vec)
+                        best_safety_action = {
+                            'V0': np.clip(0.5 + safety_dist * 1.5, 0.5, 1.5),
+                            'phi': self._get_angle(aim_vec),
+                            'theta': 0, 'a': 0, 'b': 0
+                        }
+
+            # 判定输出
+            if best_safety_action:
+                print(f"[NewAgent] 进攻受阻，尝试合法防守：瞄准离黑8最远的球.")
+                return best_safety_action
+            else:
+                # 尝试二：如果路径都被挡死，执行极端保守防守（反向轻推）
+                print("[NewAgent] 所有己方球被黑8路径封死，执行反向轻推。")
+                pos_8 = balls['8'].state.rvw[0]
+                angle_to_8 = self._get_angle(pos_8 - cue_pos)
+                return {
+                    'V0': 0.5,
+                    'phi': (angle_to_8 + 160) % 360,
+                    'theta': 0, 'a': 0, 'b': 0
+                }
         
         # 选出分最高的方案
         best_geo = max(candidates, key=lambda x: x['score'])
@@ -659,7 +675,7 @@ class NewAgent(Agent):
             # 打黑8：速度更慢，防止洗袋，求稳
             # 基础速度降低，且上限设为 2.5
             base_v0 = 0.8 + best_geo['dist'] * 1.0 
-            base_v0 = np.clip(base_v0, 2.0, 2.1)
+            base_v0 = np.clip(base_v0, 0.5, 1.0)
             print(f"[NewAgent] 决胜球(黑8)！启用低速模式: V0={base_v0:.2f}")
         else:
             # 普通球：正常力度
@@ -667,10 +683,10 @@ class NewAgent(Agent):
             base_v0 = np.clip(base_v0, 1.5, 4.5)
         
         pbounds = {
-            'delta_v': (-0.6, 0.6), 
-            'delta_phi': (-1.5, 1.5), 
-            'a': (-0.1, 0.1),
-            'b': (-0.1, 0.1) 
+            'delta_v': (-0.2, 0.2), 
+            'delta_phi': (-1.2, 1.2), 
+            'a': (-0.05, 0.05),
+            'b': (-0.05, 0.05) 
         }
         
         state_snapshot = {bid: copy.deepcopy(ball) for bid, ball in balls.items()}
@@ -682,7 +698,7 @@ class NewAgent(Agent):
             sim_cue = pt.Cue(cue_ball_id="cue")
             sim_sys = pt.System(table=sim_table, balls=sim_balls, cue=sim_cue)
             
-            v_eval = np.clip(base_v0 + delta_v, 0.5, 8.0)
+            v_eval = np.clip(base_v0 + delta_v, 0.5, 3.0)
             phi_eval = (best_geo['phi_geo'] + delta_phi) % 360
             
             try:
@@ -711,7 +727,7 @@ class NewAgent(Agent):
         params = best_res['params']
         
         final_action = {
-            'V0': np.clip(base_v0 + params['delta_v'], 0.5, 8.0),
+            'V0': np.clip(base_v0 + params['delta_v'], 0.5, 2.8),
             'phi': (best_geo['phi_geo'] + params['delta_phi']) % 360,
             'theta': 0, 
             'a': params['a'],
