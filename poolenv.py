@@ -335,6 +335,7 @@ class PoolEnv():
         if "cue" in new_pocketed and "8" in new_pocketed:
             print(f"⚪+🎱 白球和黑8同时落袋,犯规!判负！")
             print(f"🏆 Player {self.players[1 - self.curr_player]} 获胜！")
+            with open("logging.txt", "a", encoding="utf-8") as f: f.write(f"白球和黑8同时落袋,犯规!判负！Player {self.players[1 - self.curr_player]} 获胜！\n")
             self.done = True
             self.winner = self.players[1 - self.curr_player]
             return {'ME_INTO_POCKET': own_pocketed, 'ENEMY_INTO_POCKET': enemy_pocketed, 'WHITE_BALL_INTO_POCKET': True, 'BLACK_BALL_INTO_POCKET': True, 'FOUL_FIRST_HIT': False, 'NO_POCKET_NO_RAIL': False, 'BALLS': copy.deepcopy(self.balls)}
@@ -360,6 +361,7 @@ class PoolEnv():
                 else:
                     self.winner = "SAME"
                 print(f"📊 最大击球数详情：A剩余 {a_left}，B剩余 {b_left}，胜者：{self.winner}")
+                with open("logging.txt", "a", encoding="utf-8") as f: f.write(f"📊 最大击球数详情：A剩余 {a_left}，B剩余 {b_left}，胜者：{self.winner}\n")
             return {'ME_INTO_POCKET': own_pocketed, 'ENEMY_INTO_POCKET': enemy_pocketed, 'WHITE_BALL_INTO_POCKET': True, 'BLACK_BALL_INTO_POCKET': False, 'FOUL_FIRST_HIT': False, 'NO_POCKET_NO_RAIL': False, 'BALLS': balls_before_shot}
         
         player = self.get_curr_player()
@@ -369,10 +371,12 @@ class PoolEnv():
             # 检查击球前是否已清空所有目标球（不能同时打进最后目标球+黑8）
             if len(remaining_own_before) == 0:
                 print(f"🏆 Player {player} 成功打进黑8，获胜！")
+                with open("logging.txt", "a", encoding="utf-8") as f: f.write(f"🏆 Player {player} 成功打进黑8，获胜！\n")
                 self.winner = self.players[self.curr_player]
             else:
                 print(f"💥 Player {player} 误打黑8（自身球未清空），判负！")
                 print(f"🏆 Player {self.players[1 - self.curr_player]} 获胜！")
+                with open("logging.txt", "a", encoding="utf-8") as f: f.write(f"Player {player} 误打黑8（自身球未清空），判负！Player {self.players[1 - self.curr_player]} 获胜！\n")
                 self.winner = self.players[1 - self.curr_player]
             self.done = True
             return {'ME_INTO_POCKET': own_pocketed, 'ENEMY_INTO_POCKET': enemy_pocketed, 'WHITE_BALL_INTO_POCKET': False, 'BLACK_BALL_INTO_POCKET': True, 'FOUL_FIRST_HIT': False, 'NO_POCKET_NO_RAIL': False, 'BALLS': copy.deepcopy(self.balls)}
@@ -396,6 +400,7 @@ class PoolEnv():
                 else:
                     self.winner = "SAME"
                 print(f"📊 最大击球数详情：Player A剩余 {a_left}，Player B剩余 {b_left}，胜者：{self.winner}")
+                with open("logging.txt", "a", encoding="utf-8") as f: f.write(f"📊 最大击球数详情：Player A剩余 {a_left}，Player B剩余 {b_left}，胜者：{self.winner}\n")
             return {'ME_INTO_POCKET': own_pocketed, 'ENEMY_INTO_POCKET': enemy_pocketed, 'WHITE_BALL_INTO_POCKET': False, 'BLACK_BALL_INTO_POCKET': False, 'FOUL_FIRST_HIT': False, 'NO_POCKET_NO_RAIL': False, 'NO_HIT': True, 'BALLS': balls_before_shot}
         if first_contact_ball_id is not None:
             opponent_plus_eight = [bid for bid in self.balls.keys() if bid not in self.player_targets[player] and bid not in ['cue']]
@@ -426,6 +431,7 @@ class PoolEnv():
                     else:
                         self.winner = "SAME"
                     print(f"📊 最大击球数详情：A剩余 {a_left}，B剩余 {b_left}，胜者：{self.winner}")
+                    with open("logging.txt", "a", encoding="utf-8") as f: f.write(f"📊 最大击球数详情：A剩余 {a_left}，B剩余 {b_left}，胜者：{self.winner}\n")
                 return {'ME_INTO_POCKET': own_pocketed, 'ENEMY_INTO_POCKET': enemy_pocketed, 'WHITE_BALL_INTO_POCKET': False, 'BLACK_BALL_INTO_POCKET': False, 'FOUL_FIRST_HIT': True, 'NO_POCKET_NO_RAIL': False, 'BALLS': copy.deepcopy(self.balls)}
 
         # 处理无进球的情况
@@ -450,6 +456,7 @@ class PoolEnv():
                     else:
                         self.winner = "SAME"
                     print(f"📊 最大击球数详情：A剩余 {a_left}，B剩余 {b_left}，胜者：{self.winner}")
+                    with open("logging.txt", "a", encoding="utf-8") as f: f.write(f"📊 最大击球数详情：A剩余 {a_left}，B剩余 {b_left}，胜者：{self.winner}\n")
                 return {'ME_INTO_POCKET': own_pocketed, 'ENEMY_INTO_POCKET': enemy_pocketed, 'WHITE_BALL_INTO_POCKET': False, 'BLACK_BALL_INTO_POCKET': False, 'FOUL_FIRST_HIT': False, 'NO_POCKET_NO_RAIL': True, 'BALLS': balls_before_shot}
             else:
                 # 无进球但有球碰库，仅交换球权
@@ -469,6 +476,7 @@ class PoolEnv():
                     else:
                         self.winner = "SAME"
                     print(f"📊 最大击球数详情：A剩余 {a_left}，B剩余 {b_left}，胜者：{self.winner}")
+                    with open("logging.txt", "a", encoding="utf-8") as f: f.write(f"📊 最大击球数详情：A剩余 {a_left}，B剩余 {b_left}，胜者：{self.winner}\n")
                 return {'ME_INTO_POCKET': own_pocketed, 'ENEMY_INTO_POCKET': enemy_pocketed, 'WHITE_BALL_INTO_POCKET': False, 'BLACK_BALL_INTO_POCKET': False, 'FOUL_FIRST_HIT': False, 'NO_POCKET_NO_RAIL': False, 'BALLS': copy.deepcopy(self.balls)}
         
         # 判断是否打进自己球，确定下一个击球方
@@ -495,6 +503,7 @@ class PoolEnv():
             else:
                 self.winner = "SAME"
             print(f"📊 最大击球数详情：A剩余 {a_left}，B剩余 {b_left}，胜者：{self.winner}")
+            with open("logging.txt", "a", encoding="utf-8") as f: f.write(f"📊 最大击球数详情：A剩余 {a_left}，B剩余 {b_left}，胜者：{self.winner}\n")
             return {'ME_INTO_POCKET': own_pocketed, 'ENEMY_INTO_POCKET': enemy_pocketed, 'WHITE_BALL_INTO_POCKET': False, 'BLACK_BALL_INTO_POCKET': False, 'BALLS': copy.deepcopy(self.balls)}
         
         # return 一些这一杆的结果信息
