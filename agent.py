@@ -1227,6 +1227,7 @@ class NewAgent(Agent):
             sim_cue = pt.Cue(cue_ball_id="cue")
             sim_sys = pt.System(table=sim_table, balls=sim_balls, cue=sim_cue)
             
+            
             v_eval = np.clip(base_v0 + delta_v, 0.5, 4.5)
             phi_eval = (candidate['phi_geo'] + delta_phi) % 360
             
