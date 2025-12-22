@@ -1228,7 +1228,7 @@ class NewAgent(Agent):
             sim_sys = pt.System(table=sim_table, balls=sim_balls, cue=sim_cue)
             
             
-            v_eval = np.clip(base_v0 + delta_v, 0.5, 4.5)
+            v_eval = np.clip(base_v0 + delta_v, 0.5, 3.5)
             phi_eval = (candidate['phi_geo'] + delta_phi) % 360
             
             try:
@@ -1263,7 +1263,7 @@ class NewAgent(Agent):
         # 提取结果
         params = optimizer.max['params']
         optimized_action = {
-            'V0': np.clip(base_v0 + params['delta_v'], 0.5, 4.5),
+            'V0': np.clip(base_v0 + params['delta_v'], 0.5, 3.5),
             'phi': (candidate['phi_geo'] + params['delta_phi']) % 360,
             'theta': 0, 'a': params['a'], 'b': params['b']
         }
@@ -1362,7 +1362,7 @@ class NewAgent(Agent):
             if tid == '8':
                 base_v0 = np.clip(0.8 + cand['dist'] * 1.0, 0.5, 1.5) # 黑8求稳
             else:
-                base_v0 = np.clip(1.0 + cand['dist'] * 1.5, 1.5, 4.5)
+                base_v0 = np.clip(1.0 + cand['dist'] * 1.5, 1.5, 3.5)
             
             # Step A: 贝叶斯优化 (Optimization)
             # print(f"  > 正在优化候选 #{i} (Target: {tid})...")
