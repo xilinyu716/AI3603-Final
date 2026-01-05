@@ -15,24 +15,26 @@ evaluate.py - Agent 评估脚本
 # 导入必要的模块
 from utils import set_random_seed
 from poolenv import PoolEnv
-from agent import BasicAgent, NewAgent
+from agents import BasicAgent, BasicAgentPro, NewAgent
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     # 设置随机种子，enable=True 时使用固定种子，enable=False 时使用完全随机
     # 根据需求，我们在这里统一设置随机种子，确保 agent 双方的全局击球扰动使用相同的随机状态
     set_random_seed(enable=False, seed=42)
 
     env = PoolEnv()
     results = {'AGENT_A_WIN': 0, 'AGENT_B_WIN': 0, 'SAME': 0}
-    n_games = 40  # 对战局数 自己测试时可以修改 扩充为120局为了减少随机带来的扰动
+    n_games = 120  # 对战局数 自己测试时可以修改 扩充为120局为了减少随机带来的扰动
 
-    agent_a, agent_b = BasicAgent(), NewAgent()
+    ## 选择对打的对手
+    # agent_a, agent_b = BasicAgent(), NewAgent() # 与 BasicAgent 对打
+    agent_a, agent_b = BasicAgentPro(), NewAgent("/home/xlyu/AI-Billiard/AI3603-Billiards-RL/AI3603-Billiards-main/ckpts") # 与 BasicAgentPro 对打
 
     players = [agent_a, agent_b]  # 用于切换先后手
     target_ball_choice = ['solid', 'solid', 'stripe', 'stripe']  # 轮换球型
 
     for i in range(n_games): 
-        print()
+        # print()
         print(f"------- 第 {i} 局比赛开始 -------")
         env.reset(target_ball=target_ball_choice[i % 4])
         player_class = players[i % 2].__class__.__name__
@@ -42,6 +44,8 @@ if __name__ == "__main__":
             player = env.get_curr_player()
             print(f"[第{env.hit_count}次击球] player: {player}")
             obs = env.get_observation(player)
+            
+        
             if player == 'A':
                 action = players[i % 2].decision(*obs)
             else:
@@ -51,14 +55,14 @@ if __name__ == "__main__":
             done, info = env.get_done()
             if not done:
                 # poolenv中已有打印，无需再输出
-                # if step_info.get('FOUL_FIRST_HIT'):
-                #     print("本杆判罚：首次接触对方球或黑8，直接交换球权。")
-                # if step_info.get('NO_POCKET_NO_RAIL'):
-                #     print("本杆判罚：无进球且母球或目标球未碰库，直接交换球权。")
-                # if step_info.get('NO_HIT'):
-                #     print("本杆判罚：白球未接触任何球，直接交换球权。")
-                # if step_info.get('ME_INTO_POCKET'):
-                #     print(f"我方球入袋：{step_info['ME_INTO_POCKET']}")
+                if step_info.get('FOUL_FIRST_HIT'):
+                    print("本杆判罚：首次接触对方球或黑8，直接交换球权。")
+                if step_info.get('NO_POCKET_NO_RAIL'):
+                    print("本杆判罚：无进球且母球或目标球未碰库，直接交换球权。")
+                if step_info.get('NO_HIT'):
+                    print("本杆判罚：白球未接触任何球，直接交换球权。")
+                if step_info.get('ME_INTO_POCKET'):
+                    print(f"我方球入袋：{step_info['ME_INTO_POCKET']}")
                 if step_info.get('ENEMY_INTO_POCKET'):
                     print(f"对方球入袋：{step_info['ENEMY_INTO_POCKET']}")
             if done:
@@ -75,5 +79,11 @@ if __name__ == "__main__":
     results['AGENT_A_SCORE'] = results['AGENT_A_WIN'] * 1 + results['SAME'] * 0.5
     results['AGENT_B_SCORE'] = results['AGENT_B_WIN'] * 1 + results['SAME'] * 0.5
 
-    print("\n最终结果：", results)
-    with open("logging.txt", "a", encoding="utf-8") as f: f.write(f"最终结果：, {results}")
+    print("最终结果:", results)
+    total = n_games
+    newagent_wins = results['AGENT_B_WIN']
+    basic_wins = results['AGENT_A_WIN']
+    draws = results['SAME']
+    win_rate = newagent_wins / float(total)
+    score_rate = results['AGENT_B_SCORE'] / float(total)
+    print(f"NewAgent胜:{newagent_wins}/{total} 平:{draws} 胜率:{win_rate:.3f} 计分胜率:{score_rate:.3f}")

@@ -29,10 +29,10 @@ def set_random_seed(enable=False, seed=42):
             torch.backends.cudnn.deterministic = True
             torch.backends.cudnn.benchmark = False
         
-        print(f"随机种子已设置为: {seed}")
+        # print(f"随机种子已设置为: {seed}")
     else:
         # 重置为随机性，使用系统时间作为种子
         random.seed()
         np.random.seed(None)
         
-        print("随机种子已禁用，使用完全随机模式")
+        # print("随机种子已禁用，使用完全随机模式")
