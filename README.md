@@ -23,7 +23,7 @@ pip install torch
 ## Evaluation
 To verify your setup is correct, run:
 ```bash
-python evaluate.py --ckpt_path $PATH_ON_YOUR_DEVICE
+python -m eval.evaluate
 ```
 
 ## Project Structure
