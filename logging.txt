@@ -72890,3 +72890,7 @@ Player A 误打黑8（自身球未清空），判负！Player B 获胜！
 🏆 Player B 成功打进黑8，获胜！
 🏆 Player B 成功打进黑8，获胜！
 Player A 误打黑8（自身球未清空），判负！Player B 获胜！
+第 0 局 - Player A: BasicAgentPro
+🏆 Player B 成功打进黑8，获胜！
+第 1 局 - Player A: NewAgent
+第 0 局 - Player A: BasicAgentPro
