@@ -1,18 +1,37 @@
-# AI3603-Billiards
-AI3603课程台球大作业
+# AI3603 Billiards - AI Agent Training & Evaluation
 
-## 关键文件说明
+## Project Overview
 
-| 文件 | 作用 | 在最终测试中是否可修改 |
-|------|------|-----------|
-| `poolenv.py` | 台球环境（游戏规则） | ❌ 不可修改 |
-| `agents`文件夹 | Agent 定义（在 `new_agent.py` 中实现你的算法） | ✅ 可修改 `new_agent.py` |
-| `evaluate.py` | 评估脚本（运行对战） | ✅ 可修改 `agent_b` |
-| `PROJECT_GUIDE.md` | 项目详细指南 | 📖 参考文档 |
-| `GAME_RULES.md` | 游戏规则说明 | 📖 参考文档 |
+This project implements an AI-driven billiards game environment where intelligent agents learn to make optimal shot decisions. The project uses realistic physics simulation, combined with reinforcement learning to train and evaluate agents capable of competing in 8-ball billiards. The main goal is to develop agents that can achieve high win rates against baseline opponents.
 
-对作业内容的视频说明：
-说明.mp4：https://pan.sjtu.edu.cn/web/share/da9459405eac6252d01c249c3bcb989f
-供大家参考，以文字说明为准。
+
+## Environment Setup
+
+```bash
+git clone https://github.com/xilinyu716/AI3603-Final
+conda create -n billiard-ai python=3.13
+conda activate billiard-ai
+git clone https://github.com/SJTU-RL2/pooltool.git
+cd pooltool
+pip install "poetry==2.2.1"
+poetry install --with=dev,docs
+pip install bayesian-optimization numpy
+pip install torch
+
+```
+
+## Evaluation
+To verify your setup is correct, run:
+```bash
+python evaluate.py --ckpt_path $PATH_ON_YOUR_DEVICE
+```
+
+## Project Structure
+
+- `poolenv.py` - Billiards environment implementation
+- `agents/` - Agent implementations (NewAgent, etc.)
+- `train.py` - Training script for NewAgent
+- `evaluate.py` - Evaluation script to test agent performance
+- `utils.py` - Utility functions
 
 ---
